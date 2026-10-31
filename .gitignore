@@ -33,6 +33,12 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Generated dependency injection and routing files
+/lib/core/di/injection.config.dart
+/lib/core/router/app_router.gr.dart
+/lib/features/home/presentation/blocs/home/home_state.freezed.dart
+lib/features/home/data/models/daily_counts_model.freezed.dart
+
 # Symbolication related
 app.*.symbols
 
