@@ -33,6 +33,14 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Generated dependency injection and routing files
+/lib/core/di/injection.config.dart
+
+# Generated Dart sources are regenerated before analysis/builds.
+*.gr.dart
+*.freezed.dart
+/lib/gen/
+
 # Symbolication related
 app.*.symbols
 
