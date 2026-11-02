@@ -1,5 +1,5 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:doom_meter/core/app_images.dart';
+import 'package:doom_meter/gen/assets.gen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -77,8 +77,8 @@ class _HomeViewState extends State<_HomeView> {
                       const SizedBox(height: 32),
                       ClipRRect(
                         borderRadius: BorderRadius.circular(28),
-                        child: Image.asset(
-                          AppImages.brainIcon,
+                        child: Assets.images.brainIcon.image(
+                          gaplessPlayback: false,
                           width: 300,
                           height: 300,
                           fit: BoxFit.contain,

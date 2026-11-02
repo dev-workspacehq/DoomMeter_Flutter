@@ -7,7 +7,7 @@ class IncrementSocialCountParams {
     required this.platform,
     required DateTime date,
     required DateTime activityTime,
-  }) : date = normalizeDate(date),
+  }) : date = date.normalizedDate,
        activityTime = activityTime.toLocal();
 
   final SocialPlatform platform;

@@ -35,33 +35,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ScrollTrackingService _tracking;
   final SyncDetectedScrollCounts _syncDetectedCounts;
 
-  static HomeState _initialState(DateTime now, bool supported) => HomeState(
-    selectedDate: normalizeDate(now),
-    today: normalizeDate(now),
+  static HomeState _initialState(DateTime now) => HomeState(
+    selectedDate: now.normalizedDate,
+    today: now.normalizedDate,
     isTrackingSupported: supported,
   );
 
   Future<void> _onEvent(HomeEvent event, Emitter<HomeState> emit) async {
     final now = _clock.now();
-    final today = normalizeDate(now);
-    if (event is HomeTrackingPermissionRequested) {
-      try {
-        await _tracking.openAccessibilitySettings();
-      } catch (_) {
-        if (!emit.isDone) {
-          emit(
-            state.copyWith(
-              trackingErrorMessage:
-                  'Could not open Accessibility Settings. Please try again.',
-            ),
-          );
-        }
-      }
-      return;
-    }
+    final today = now.normalizedDate;
     if (event is HomeSocialIncrementRequested) {
       // Recheck even if the screen was left open across midnight.
-      if (!isSameDate(state.selectedDate, today)) {
+      if (!state.selectedDate.isSameCalendarDate(today)) {
         emit(state.copyWith(today: today));
         return;
       }
@@ -80,7 +65,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         if (emit.isDone) return;
         emit(
           state.copyWith(
-            today: normalizeDate(_clock.now()),
+            today: _clock.now().normalizedDate,
             counts: counts,
             errorMessage: null,
           ),
@@ -96,13 +81,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         }
       } on ReadOnlyCountDate {
         if (!emit.isDone) {
-          emit(state.copyWith(today: normalizeDate(_clock.now())));
+          emit(state.copyWith(today: _clock.now().normalizedDate));
         }
       } catch (_) {
         if (!emit.isDone) {
           emit(
             state.copyWith(
-              today: normalizeDate(_clock.now()),
+              today: _clock.now().normalizedDate,
               errorMessage: 'Could not save this activity. Please try again.',
             ),
           );
@@ -113,7 +98,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     final date = switch (event) {
       HomeStarted() => today,
-      HomeDateChanged(:final date) => normalizeDate(date),
+      HomeDateChanged(:final date) => date.normalizedDate,
       HomeResumed() => state.isToday ? today : state.selectedDate,
       _ => state.selectedDate,
     };
@@ -136,7 +121,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         state.copyWith(
           selectedDate: date,
-          today: normalizeDate(_clock.now()),
+          today: _clock.now().normalizedDate,
           counts: counts,
           isLoading: false,
         ),
@@ -146,8 +131,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         state.copyWith(
           selectedDate: date,
-          today: normalizeDate(_clock.now()),
-          isLoading: false,
+          today: _clock.now().normalizedDate,
           errorMessage: 'Unable to load this day. Please try again.',
         ),
       );

@@ -46,6 +46,17 @@ void main() {
     expect(await storage.get<bool>('settings', 'enabled'), isTrue);
   });
 
+  test('clear persists and leaves other boxes untouched', () async {
+    await storage.put('settings', 'theme', 'dark');
+    await storage.put('history', 'count', 3);
+    await storage.clear('settings');
+    await Hive.close();
+    Hive.init(directory.path);
+
+    expect(await storage.get<String>('settings', 'theme'), isNull);
+    expect(await storage.get<int>('history', 'count'), 3);
+  });
+
   test(
     'surfaces a mismatched read type instead of hiding corrupt data',
     () async {

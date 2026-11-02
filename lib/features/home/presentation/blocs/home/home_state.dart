@@ -24,7 +24,7 @@ abstract class HomeState with _$HomeState {
   }) = _HomeState;
 
   /// A UI snapshot; write authorization always rechecks the clock in the domain.
-  bool get isToday => isSameDate(selectedDate, today);
+  bool get isToday => selectedDate.isSameCalendarDate(today);
 
   bool get canManuallyIncrementYouTube =>
       isToday &&

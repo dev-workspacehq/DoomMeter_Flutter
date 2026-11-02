@@ -23,8 +23,8 @@ void validateCountDate({
   required DateTime activityTime,
   required DateTime now,
 }) {
-  if (!isSameDate(date, now)) throw const ReadOnlyCountDate();
-  if (!isSameDate(date, activityTime)) {
+  if (!date.isSameCalendarDate(now)) throw const ReadOnlyCountDate();
+  if (!date.isSameCalendarDate(activityTime)) {
     throw ArgumentError(
       'Activity time must belong to the requested local day.',
     );

@@ -24,12 +24,12 @@ abstract class DailyCountsModel with _$DailyCountsModel {
 
     final date = dateValue is String ? DateTime.tryParse(dateValue) : null;
 
-    if (date == null || createDateKey(date) != dateValue) {
+    if (date == null || date.dateKey != dateValue) {
       throw const FormatException('Invalid daily counter date.');
     }
 
     return DailyCountsModel(
-      date: normalizeDate(date),
+      date: date.normalizedDate,
       instagramCount: _readCount(map['instagramCount']),
       youtubeCount: _readCount(map['youtubeCount']),
       lastInstagramActivityAt: _readTime(map['lastInstagramActivityAt']),
@@ -45,7 +45,7 @@ abstract class DailyCountsModel with _$DailyCountsModel {
 
   Map<String, Object?> toMap() {
     return {
-      'date': createDateKey(date),
+      'date': date.dateKey,
       'instagramCount': instagramCount,
       'youtubeCount': youtubeCount,
       'lastInstagramActivityAt': lastInstagramActivityAt
