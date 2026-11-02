@@ -27,14 +27,14 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final LocalClock _clock;
 
   static HomeState _initialState(DateTime now) =>
-      HomeState(selectedDate: normalizeDate(now), today: normalizeDate(now));
+      HomeState(selectedDate: now.normalizedDate, today: now.normalizedDate);
 
   Future<void> _onEvent(HomeEvent event, Emitter<HomeState> emit) async {
     final now = _clock.now();
-    final today = normalizeDate(now);
+    final today = now.normalizedDate;
     if (event is HomeSocialIncrementRequested) {
       // Recheck even if the screen was left open across midnight.
-      if (!isSameDate(state.selectedDate, today)) {
+      if (!state.selectedDate.isSameCalendarDate(today)) {
         emit(state.copyWith(today: today));
         return;
       }
@@ -49,20 +49,20 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         if (emit.isDone) return;
         emit(
           state.copyWith(
-            today: normalizeDate(_clock.now()),
+            today: _clock.now().normalizedDate,
             counts: counts,
             errorMessage: null,
           ),
         );
       } on ReadOnlyCountDate {
         if (!emit.isDone) {
-          emit(state.copyWith(today: normalizeDate(_clock.now())));
+          emit(state.copyWith(today: _clock.now().normalizedDate));
         }
       } catch (_) {
         if (!emit.isDone) {
           emit(
             state.copyWith(
-              today: normalizeDate(_clock.now()),
+              today: _clock.now().normalizedDate,
               errorMessage: 'Could not save this activity. Please try again.',
             ),
           );
@@ -73,7 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     final date = switch (event) {
       HomeStarted() => today,
-      HomeDateChanged(:final date) => normalizeDate(date),
+      HomeDateChanged(:final date) => date.normalizedDate,
       HomeResumed() => state.isToday ? today : state.selectedDate,
       _ => state.selectedDate,
     };
@@ -84,7 +84,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         HomeState(
           selectedDate: date,
-          today: normalizeDate(_clock.now()),
+          today: _clock.now().normalizedDate,
           counts: counts,
         ),
       );
@@ -93,7 +93,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(
         HomeState(
           selectedDate: date,
-          today: normalizeDate(_clock.now()),
+          today: _clock.now().normalizedDate,
           errorMessage: 'Unable to load this day. Please try again.',
         ),
       );

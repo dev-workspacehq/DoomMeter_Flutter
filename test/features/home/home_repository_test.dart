@@ -245,9 +245,9 @@ void main() {
   );
 
   test('date keys normalize hours and preserve calendar boundaries', () {
-    expect(createDateKey(DateTime(2026, 10, 31, 10)), '2026-10-31');
-    expect(createDateKey(DateTime(2026, 10, 31, 23)), '2026-10-31');
-    expect(createDateKey(DateTime(2028, 2, 29)), '2028-02-29');
-    expect(createDateKey(DateTime(2026, 12, 32)), '2027-01-01');
+    expect(DateTime(2026, 10, 31, 10).dateKey, '2026-10-31');
+    expect(DateTime(2026, 10, 31, 23).dateKey, '2026-10-31');
+    expect(DateTime(2028, 2, 29).dateKey, '2028-02-29');
+    expect(DateTime(2026, 12, 32).dateKey, '2027-01-01');
   });
 }

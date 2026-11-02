@@ -59,7 +59,9 @@ class SocialCounter extends StatelessWidget {
               const SizedBox(height: 16),
               SizedBox.square(
                 dimension: 36,
-                child: CustomPaint(painter: _SocialIconPainter(platform)),
+                child: RepaintBoundary(
+                  child: CustomPaint(painter: _SocialIconPainter(platform)),
+                ),
               ),
               const SizedBox(height: 10),
               Text(label, style: Theme.of(context).textTheme.bodyMedium),

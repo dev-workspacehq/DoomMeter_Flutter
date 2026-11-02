@@ -28,17 +28,17 @@ class HomeDataSource {
   Future<DailyCountsModel> _read(DateTime date) async {
     final map = await _storage.get<Map<dynamic, dynamic>>(
       dailyCountsBoxName,
-      createDateKey(date),
+      date.dateKey,
     );
     if (map == null) {
       return DailyCountsModel(
-        date: normalizeDate(date),
+        date: date.normalizedDate,
         instagramCount: 0,
         youtubeCount: 0,
       );
     }
     final model = DailyCountsModel.fromMap(map);
-    if (!isSameDate(model.date, date)) {
+    if (!model.date.isSameCalendarDate(date)) {
       throw const FormatException('Daily counter key and date do not match.');
     }
     return model;
@@ -59,7 +59,7 @@ class HomeDataSource {
       final previous = await _read(date);
       final instagram = platform == SocialPlatform.instagram;
       final updated = DailyCountsModel(
-        date: normalizeDate(date),
+        date: date.normalizedDate,
         instagramCount: previous.instagramCount + (instagram ? 1 : 0),
         youtubeCount: previous.youtubeCount + (instagram ? 0 : 1),
         lastInstagramActivityAt: instagram
@@ -71,11 +71,7 @@ class HomeDataSource {
       );
       // A queued read may have crossed midnight. Never write yesterday's record.
       validate();
-      await _storage.put(
-        dailyCountsBoxName,
-        createDateKey(date),
-        updated.toMap(),
-      );
+      await _storage.put(dailyCountsBoxName, date.dateKey, updated.toMap());
       return updated;
     });
     // Failed writes reach their caller without poisoning the next operation.

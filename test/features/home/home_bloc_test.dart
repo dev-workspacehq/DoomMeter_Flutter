@@ -149,7 +149,7 @@ void main() {
       await _increment(bloc, SocialPlatform.instagram, 1);
       context.clock.time = DateTime(2026, 11, 1, 9);
       final resumed = await _load(bloc, const HomeResumed());
-      expect(resumed.selectedDate, normalizeDate(context.clock.now()));
+      expect(resumed.selectedDate, context.clock.now().normalizedDate);
       expect(resumed.counts?.totalCount, 0);
       expect(
         (await context.repository.getDailyCounts(
