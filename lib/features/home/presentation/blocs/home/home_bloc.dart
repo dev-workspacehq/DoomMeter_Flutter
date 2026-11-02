@@ -35,7 +35,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final ScrollTrackingService _tracking;
   final SyncDetectedScrollCounts _syncDetectedCounts;
 
-  static HomeState _initialState(DateTime now) => HomeState(
+  static HomeState _initialState(DateTime now, bool supported) => HomeState(
     selectedDate: now.normalizedDate,
     today: now.normalizedDate,
     isTrackingSupported: supported,

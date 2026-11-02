@@ -112,11 +112,7 @@ class HomeDataSource {
         lastSyncedYoutubeActivityAt: lastActivityAt?.toLocal(),
       );
       if (updated != previous) {
-        await _storage.put(
-          dailyCountsBoxName,
-          createDateKey(date),
-          updated.toMap(),
-        );
+        await _storage.put(dailyCountsBoxName, date.dateKey, updated.toMap());
       }
       return updated;
     });
