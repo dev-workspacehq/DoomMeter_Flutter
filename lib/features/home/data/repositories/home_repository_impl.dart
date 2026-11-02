@@ -13,6 +13,19 @@ class HomeRepositoryImpl implements HomeRepository {
   final HomeDataSource _dataSource;
 
   @override
+  Future<DailyCounts> syncYouTubeDetectedCount({
+    required DateTime date,
+    required int detectedCount,
+    required DateTime? lastActivityAt,
+    required bool trackingEnabled,
+  }) async => (await _dataSource.syncYouTubeDetectedCount(
+    date: date,
+    detectedCount: detectedCount,
+    lastActivityAt: lastActivityAt,
+    trackingEnabled: trackingEnabled,
+  )).toEntity();
+
+  @override
   Future<DailyCounts> getDailyCounts(DateTime date) async {
     return (await _dataSource.getDailyCounts(date)).toEntity();
   }

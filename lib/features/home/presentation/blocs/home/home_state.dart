@@ -14,9 +14,22 @@ abstract class HomeState with _$HomeState {
     required DateTime today,
     DailyCounts? counts,
     @Default(false) bool isLoading,
+    @Default(false) bool isYouTubeTrackingEnabled,
+    @Default(false) bool isTrackingStatusKnown,
+    @Default(false) bool isTrackingSupported,
+    @Default(false) bool isTrackingStatusLoading,
+    @Default(false) bool isSyncingNativeCounts,
+    String? trackingErrorMessage,
     String? errorMessage,
   }) = _HomeState;
 
   /// A UI snapshot; write authorization always rechecks the clock in the domain.
   bool get isToday => isSameDate(selectedDate, today);
+
+  bool get canManuallyIncrementYouTube =>
+      isToday &&
+      isTrackingStatusKnown &&
+      !isYouTubeTrackingEnabled &&
+      !isSyncingNativeCounts &&
+      !isTrackingStatusLoading;
 }

@@ -14,6 +14,9 @@ abstract class DailyCountsModel with _$DailyCountsModel {
     required int youtubeCount,
     DateTime? lastInstagramActivityAt,
     DateTime? lastYoutubeActivityAt,
+    // Native checkpoint metadata stays in the same atomic daily Hive record.
+    int? lastSyncedYoutubeCount,
+    DateTime? lastSyncedYoutubeActivityAt,
   }) = _DailyCountsModel;
 
   factory DailyCountsModel.fromMap(Map<dynamic, dynamic> map) {
@@ -31,6 +34,12 @@ abstract class DailyCountsModel with _$DailyCountsModel {
       youtubeCount: _readCount(map['youtubeCount']),
       lastInstagramActivityAt: _readTime(map['lastInstagramActivityAt']),
       lastYoutubeActivityAt: _readTime(map['lastYoutubeActivityAt']),
+      lastSyncedYoutubeCount: map['lastSyncedYoutubeCount'] == null
+          ? null
+          : _readCount(map['lastSyncedYoutubeCount']),
+      lastSyncedYoutubeActivityAt: _readTime(
+        map['lastSyncedYoutubeActivityAt'],
+      ),
     );
   }
 
@@ -43,6 +52,10 @@ abstract class DailyCountsModel with _$DailyCountsModel {
           ?.toLocal()
           .toIso8601String(),
       'lastYoutubeActivityAt': lastYoutubeActivityAt
+          ?.toLocal()
+          .toIso8601String(),
+      'lastSyncedYoutubeCount': lastSyncedYoutubeCount,
+      'lastSyncedYoutubeActivityAt': lastSyncedYoutubeActivityAt
           ?.toLocal()
           .toIso8601String(),
     };

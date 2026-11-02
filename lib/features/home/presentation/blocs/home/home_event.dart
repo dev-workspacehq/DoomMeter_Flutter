@@ -26,3 +26,15 @@ final class HomeRetryRequested extends HomeEvent {
 final class HomeResumed extends HomeEvent {
   const HomeResumed();
 }
+
+final class HomeTrackingPermissionRequested extends HomeEvent {
+  const HomeTrackingPermissionRequested();
+}
+
+final class HomeTrackingStatusRequested extends HomeEvent {
+  const HomeTrackingStatusRequested();
+}
+
+final class HomeNativeCountsSyncRequested extends HomeEvent {
+  const HomeNativeCountsSyncRequested();
+}

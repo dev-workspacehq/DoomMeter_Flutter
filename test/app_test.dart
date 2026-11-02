@@ -1,5 +1,6 @@
 import 'package:doom_meter/app.dart';
 import 'package:doom_meter/core/di/injection.dart';
+import 'package:doom_meter/core/platform/scroll_tracking/scroll_tracking_service.dart';
 import 'package:doom_meter/core/router/app_router.dart';
 import 'package:doom_meter/core/storage/local_storage_service.dart';
 import 'package:doom_meter/core/utils/local_clock.dart';
@@ -14,6 +15,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 
 import 'support/home_test_context.dart';
+import 'support/fake_scroll_tracking_service.dart';
 
 /// UI tests use synchronous-memory-backed persistence; real Hive I/O is covered
 /// by the repository and Bloc integration suites without a simulated UI clock.
@@ -46,6 +48,8 @@ Future<void> waitForHome(
 void main() {
   setUp(() async {
     await configureDependencies();
+    await getIt.unregister<ScrollTrackingService>();
+    getIt.registerSingleton<ScrollTrackingService>(FakeScrollTrackingService());
     // Test-only replacements; production registration is generated.
     await getIt.unregister<LocalClock>();
     getIt.registerSingleton<LocalClock>(
@@ -145,6 +149,50 @@ void main() {
       await tester.pumpAndSettle();
       expect(bloc.isClosed, isTrue);
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'settings require disclosure and resume refreshes tracking status',
+    (tester) async {
+      tester.view.physicalSize = const Size(390, 1000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final router = getIt<AppRouter>();
+      addTearDown(router.dispose);
+      final tracking =
+          getIt<ScrollTrackingService>() as FakeScrollTrackingService;
+      await tester.pumpWidget(App(appRouter: router));
+      await tester.pumpAndSettle();
+      final button = find.byKey(const ValueKey('youtube-tracking-settings'));
+      await tester.ensureVisible(button);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      expect(tracking.settingsOpened, 0);
+      await tester.tap(find.text('Cancel'));
+      await tester.pumpAndSettle();
+      expect(tracking.settingsOpened, 0);
+      await tester.tap(button);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open Settings'));
+      await tester.pumpAndSettle();
+      expect(tracking.settingsOpened, 1);
+      tracking.enabled = true;
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pumpAndSettle();
+      expect(find.text('Status: Active'), findsOneWidget);
+      final youtube = tester
+          .widgetList<SocialCounter>(find.byType(SocialCounter))
+          .last;
+      expect(youtube.enabled, isFalse);
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpAndSettle();
     },
   );
 

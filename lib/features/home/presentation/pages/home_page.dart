@@ -10,6 +10,7 @@ import '../blocs/home/home_event.dart';
 import '../blocs/home/home_state.dart';
 import '../widgets/home_date_navigation.dart';
 import '../widgets/social_counter.dart';
+import '../widgets/youtube_tracking_section.dart';
 
 @RoutePage()
 class HomePage extends StatelessWidget {
@@ -113,7 +114,7 @@ class _HomeViewState extends State<_HomeView> {
                                 platform: SocialPlatform.youtube,
                                 count: counts.youtubeCount,
                                 lastActivityAt: counts.lastYoutubeActivityAt,
-                                enabled: state.isToday,
+                                enabled: state.canManuallyIncrementYouTube,
                                 onTap: () => bloc.add(
                                   const HomeSocialIncrementRequested(
                                     SocialPlatform.youtube,
@@ -135,12 +136,22 @@ class _HomeViewState extends State<_HomeView> {
                       const SizedBox(height: 24),
                       Text(
                         state.isToday
-                            ? 'Tap a counter to simulate a scroll'
+                            ? state.isYouTubeTrackingEnabled
+                                  ? 'YouTube is automatic · Tap Instagram to simulate a scroll'
+                                  : 'Tap an available counter to simulate a scroll'
                             : 'Read only · Only today can be updated',
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      YouTubeTrackingSection(
+                        state: state,
+                        onSettingsRequested: () =>
+                            bloc.add(const HomeTrackingPermissionRequested()),
+                        onRetry: () =>
+                            bloc.add(const HomeNativeCountsSyncRequested()),
                       ),
                     ],
                   ),

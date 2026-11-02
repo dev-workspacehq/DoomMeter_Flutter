@@ -58,7 +58,7 @@ class HomeDataSource {
       validate();
       final previous = await _read(date);
       final instagram = platform == SocialPlatform.instagram;
-      final updated = DailyCountsModel(
+      final updated = previous.copyWith(
         date: normalizeDate(date),
         instagramCount: previous.instagramCount + (instagram ? 1 : 0),
         youtubeCount: previous.youtubeCount + (instagram ? 0 : 1),
@@ -79,6 +79,51 @@ class HomeDataSource {
       return updated;
     });
     // Failed writes reach their caller without poisoning the next operation.
+    _pendingWrite = operation.then<void>(
+      (_) {},
+      onError: (Object _, StackTrace _) {},
+    );
+    return operation;
+  }
+
+  /// Native records may update history. Their own date keys determine storage,
+  /// independent of the selected Home date and the manual today-only guard.
+  Future<DailyCountsModel> syncYouTubeDetectedCount({
+    required DateTime date,
+    required int detectedCount,
+    required DateTime? lastActivityAt,
+    required bool trackingEnabled,
+  }) {
+    final operation = _pendingWrite.then((_) async {
+      if (detectedCount < 0 ||
+          date.year < 1 ||
+          date.year > 9999 ||
+          (lastActivityAt != null &&
+              lastActivityAt.millisecondsSinceEpoch < 0)) {
+        throw const FormatException('Invalid detected daily count.');
+      }
+      final previous = await _read(date);
+      final unchangedSnapshot =
+          previous.lastSyncedYoutubeCount == detectedCount &&
+          previous.lastSyncedYoutubeActivityAt == lastActivityAt?.toLocal();
+      // After disabling tracking, rereading the same native snapshot must not
+      // erase subsequent manual test taps. A new native snapshot is authoritative.
+      if (unchangedSnapshot && !trackingEnabled) return previous;
+      final updated = previous.copyWith(
+        youtubeCount: detectedCount,
+        lastYoutubeActivityAt: lastActivityAt?.toLocal(),
+        lastSyncedYoutubeCount: detectedCount,
+        lastSyncedYoutubeActivityAt: lastActivityAt?.toLocal(),
+      );
+      if (updated != previous) {
+        await _storage.put(
+          dailyCountsBoxName,
+          createDateKey(date),
+          updated.toMap(),
+        );
+      }
+      return updated;
+    });
     _pendingWrite = operation.then<void>(
       (_) {},
       onError: (Object _, StackTrace _) {},
