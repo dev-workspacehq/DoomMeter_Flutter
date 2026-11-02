@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="scroll_accessibility_label">Doom Meter — YouTube Shorts tracking</string>
-    <string name="scroll_accessibility_description">Observes YouTube accessibility events to estimate Shorts transitions. Counts and activity times stay on this device. This experimental tracker may miss or misclassify transitions. Disable it here at any time.</string>
+    <string name="scroll_accessibility_description">Observes YouTube accessibility events to estimate forward transitions to new Shorts. Backward movement does not count. Repeat visits are ignored while the same feed positions can be recognized. Counts and activity times stay on this device. This experimental tracker may miss or misclassify transitions. Disable it here at any time.</string>
 </resources>

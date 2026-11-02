@@ -38,10 +38,15 @@ class ScrollAccessibilityService : AccessibilityService() {
             val display = resources.displayMetrics
             val snapshot = YouTubeShortsViewerReader.read(root, display.widthPixels, display.heightPixels)
             val transition = detector.observe(snapshot, SystemClock.elapsedRealtime())
-            if (BuildConfig.DEBUG && snapshot != null) {
-                Log.d(AccessibilityEventLogger.TAG, "viewerRow=${snapshot.row} blocked=${snapshot.blocked} transition=$transition")
+            if (BuildConfig.DEBUG) {
+                Log.d(AccessibilityEventLogger.TAG,
+                    "shortsViewer=${snapshot != null} blocked=${snapshot?.blocked ?: false} " +
+                        "fromRow=${transition.fromRow} toRow=${transition.toRow} direction=${transition.direction} " +
+                        "duplicate=${transition.decision == TransitionDecision.IGNORE_DUPLICATE} " +
+                        "revisit=${transition.decision == TransitionDecision.IGNORE_REVISITED_POSITION} " +
+                        "action=${transition.decision}")
             }
-            if (transition != null) {
+            if (transition.decision == TransitionDecision.COUNT) {
                 ScrollTrackingStore.getInstance(this).incrementYouTube(System.currentTimeMillis()) {
                     Log.e(AccessibilityEventLogger.TAG, "Native tracking write failed")
                 }

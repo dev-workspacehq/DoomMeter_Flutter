@@ -22,7 +22,8 @@ class YouTubeTrackingSection extends StatelessWidget {
         content: const SingleChildScrollView(
           child: Text(
             'Doom Meter uses Android Accessibility access to observe YouTube’s screen structure '
-            'and estimate transitions between Shorts, including moving backward.\n\n'
+            'and estimate forward transitions to new Shorts. Backward movement does not count. '
+            'Repeat visits are ignored while the same feed positions can be recognized.\n\n'
             'Daily counts and activity times stay on this device. Video titles, comments, '
             'and usernames are not saved or sent to a server.\n\n'
             'This is experimental and may miss or misclassify transitions. Detected YouTube '
@@ -75,7 +76,7 @@ class YouTubeTrackingSection extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              'Estimate Shorts transitions while you use YouTube. Stored locally. Experimental.',
+              'Estimate new Shorts reached by moving forward. Backward movement does not count. Stored locally. Experimental.',
             ),
             if (state.isSyncingNativeCounts)
               const Padding(
