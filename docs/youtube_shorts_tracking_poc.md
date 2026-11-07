@@ -2,7 +2,7 @@
 
 ## Current implementation status and product definition
 
-Updated 2 November 2026. The Android-to-Flutter pipeline is implemented and has
+Updated 7 November 2026. The Android-to-Flutter pipeline is implemented and has
 been exercised on physical Samsung devices. This revision changes counting from
 bidirectional interactions to **forward discovery**. The earlier measurements
 remain below as historical evidence, including misses and false classifications.
@@ -439,6 +439,27 @@ The Settings shortcut switch is separate from the main service switch; a floatin
 accessibility shortcut can toggle tracking off. `Active` means the service is
 enabled, not a guarantee of perfect detection or immunity to OEM process limits.
 
+### Accessibility capability audit (2 November 2026)
+
+The service does not call `performAction`, `performGlobalAction`, or
+`dispatchGesture`. Gesture injection was already disabled by default; the XML now
+declares `android:canPerformGestures="false"` explicitly. This documents the
+existing restriction rather than removing a previously granted capability.
+`canRetrieveWindowContent="true"` is still required to read the viewer hierarchy,
+resource IDs, geometry, and collection rows used by this detector. Removing it
+would stop reliable structural detection. The YouTube package/event filters remain.
+
+Android's **View and perform actions** disclosure is system-controlled, not a
+separate runtime permission that this app can remove. Disabling gesture injection
+does not create a platform-enforced read-only accessibility service: node/global
+action APIs are separate, and this implementation does not use them. Both the app
+disclosure and service description now explain the app's observational behavior
+without claiming that Android's broader permission grant has disappeared.
+
+References: [Android accessibility service configuration](https://developer.android.com/guide/topics/ui/accessibility/service),
+[capability API](https://developer.android.com/reference/android/accessibilityservice/AccessibilityServiceInfo),
+and [Android's system disclosure layout](https://android.googlesource.com/platform/frameworks/base/+/refs/heads/main/core/res/res/layout/accessibility_enable_service_warning.xml).
+
 ## Native SharedPreferences storage
 
 Native preferences file: `scroll_tracking`. Keys:
@@ -816,6 +837,57 @@ These pure tests prove decisions for supplied structural snapshots; they do not
 prove that every real YouTube page exposes that snapshot or has video identity.
 Native date tests cover local midnight/timezone and strict historical date keys.
 Flutter tests exercise the actual repository/Hive and BLoC synchronization paths.
+
+## Merged Flutter regression and device validation: 7 November
+
+The merged code initially failed two existing Flutter tests. Native record
+validation compared `date.normalizedDate` (a `DateTime`) to the string key, rejecting
+every valid native record. It now compares `date.dateKey`. The Home BLoC had also
+lost its `HomeTrackingPermissionRequested` branch, so accepting the disclosure
+reloaded counts without opening Settings. The handler is restored with controlled
+error reporting. No detector rules, storage formats, or native channel methods changed.
+
+Validation used Flutter 3.47.6 and the existing locked dependencies:
+
+| Check | Result |
+| --- | --- |
+| `flutter test` | All 47 passed after the fixes, including the two previously failing tests |
+| `flutter analyze` | No issues found |
+| `:app:testDebugUnitTest --rerun` | 21 tests executed afresh; zero failures/errors/skips |
+| `:app:assembleDebug` | Succeeded; existing Gradle/Kotlin/SDK warnings remain |
+| Physical installation | Updated APK installed with `adb install -r`; no data clearing or uninstall |
+| Accessibility capabilities | Service rebound and stayed enabled; `capabilities=1` (window content), no gesture-injection capability |
+
+The physical run used Samsung SM-A127F, Android 13, YouTube 21.34.243. On Nov 7,
+the native preference file was initially absent and Flutter showed zero counts.
+Gestures used 450 ms swipes with roughly two-second pauses. Redacted structural
+logs and native preferences were checked alongside screen captures.
+
+| Sample | Observed result |
+| --- | --- |
+| Enter Shorts | Row 0 established a baseline; no increment |
+| Five forward gestures | Rows 0 → 1 → 2 → 3 → 4 → 5; native count 0 → 5 |
+| Three backward attempts | Two settled changes, 5 → 4 → 3; count stayed 5 and timestamp stayed `1794042318378` |
+| Three upward gestures after going backward | Rows 3 → 4 → 5 were rejected as revisits; 5 → 6 was new and counted, giving 6 |
+| Three Shorts-comments scrolls | 6 → 6; timestamp stayed `1794042356902`; zero COUNT decisions |
+| Return to Flutter | YouTube 6, Instagram 0, Active; last YouTube activity displayed 2:35 PM |
+| Manual counter guards | Instagram tap changed 0 → 1; YouTube tap left automatic count at 6 |
+| Date navigation | Nov 6 showed 0/0 and read-only text; Nov 7 restored 1/6 |
+| Disclosure → Open Settings | Updated explanation rendered; Android Accessibility Settings opened successfully |
+| Three confirmed Home-feed swipes | 6 → 6; timestamp unchanged; 37 non-Shorts decisions and zero COUNT decisions |
+| Three background/resume cycles | Each displayed Instagram 1, YouTube 6, Active; native count/timestamp unchanged |
+
+An earlier feed/navigation attempt ended on a channel page and is excluded from
+the confirmed Home sample. Three backward input attempts did not produce three
+settled row changes; the subsequent third upward gesture reached a genuinely new
+position. Results therefore distinguish input attempts from observed transitions.
+
+The phone was returned to Doom Meter with **Instagram 1 / YouTube 6** for Nov 7.
+These are test-generated values and were not reset. Existing saved data was not
+cleared, and the service was not toggled during the run. This validates the listed
+pipeline and regression scenarios on this device. Standard-video/search surfaces,
+service/process recreation, midnight rollover on hardware, and cross-session
+video identity were not retested here; earlier documented POC limitations remain.
 
 ## POC test matrix for the forward-only rule
 

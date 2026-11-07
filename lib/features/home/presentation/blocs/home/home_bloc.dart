@@ -44,6 +44,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _onEvent(HomeEvent event, Emitter<HomeState> emit) async {
     final now = _clock.now();
     final today = now.normalizedDate;
+    if (event is HomeTrackingPermissionRequested) {
+      try {
+        await _tracking.openAccessibilitySettings();
+      } catch (error) {
+        if (!emit.isDone) {
+          emit(
+            state.copyWith(
+              trackingErrorMessage: error is ScrollTrackingException
+                  ? error.message
+                  : 'Could not open accessibility settings. Please try again.',
+            ),
+          );
+        }
+      }
+      return;
+    }
     if (event is HomeSocialIncrementRequested) {
       // Recheck even if the screen was left open across midnight.
       if (!state.selectedDate.isSameCalendarDate(today)) {

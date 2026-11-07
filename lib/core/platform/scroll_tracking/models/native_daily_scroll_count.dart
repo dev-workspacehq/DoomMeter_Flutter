@@ -20,7 +20,7 @@ class NativeDailyScrollCount {
     final timestamp = map['lastActivityAt'];
     if (date == null ||
         date.year < 1 ||
-        date.normalizedDate != key ||
+        date.dateKey != key ||
         count is! int ||
         count < 0 ||
         (timestamp != null &&
